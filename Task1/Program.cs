@@ -13,7 +13,7 @@ namespace Task1
             string path = string.Empty;
 
             Console.WriteLine("Укажите путь к папке:");
-            path = Console.ReadLine();
+            path = @"D:\!!!Test";
 
             DirectoryInfo dir = new DirectoryInfo(path);
 
@@ -27,17 +27,39 @@ namespace Task1
         }
         static void GetDirs(DirectoryInfo directoryInfo)
         {
-            DirectoryInfo[] dirs = directoryInfo.GetDirectories();
-            foreach (var dir in dirs)
+            try
             {
-                Console.WriteLine(dir.Name);
-                GetDirs(dir);
+                DirectoryInfo[] dirs = directoryInfo.GetDirectories();
+                foreach (var dir in dirs)
+                {
+                    TimeSpan sub = DateTime.Now - dir.CreationTime;
+                    if (sub > TimeSpan.FromMinutes(30))
+                    {
+                        Console.WriteLine(dir.Name + " " + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдалено");
+                        dir.Delete(true);
+                    }
+
+                    GetDirs(dir);
+                }
+
+                if (directoryInfo.Exists)
+                {
+                    FileInfo[] files = directoryInfo.GetFiles();
+                    foreach (var file in files)
+                    {
+                        TimeSpan sub = DateTime.Now - file.LastAccessTime;
+                        if (sub > TimeSpan.FromMinutes(30))
+                        {
+                            Console.WriteLine(file.FullName + "\t" + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдалёно");
+                            file.Delete();
+                        }
+                    }
+                }
             }
-            FileInfo[] files = directoryInfo.GetFiles();
-            foreach (var file in files)
+            catch (Exception ex)
             {
-                Console.WriteLine("\t" + file.Name);
-            }
+                Console.WriteLine("Ошибка: " + ex.Message);
+            }                             
         }
     }
 }
