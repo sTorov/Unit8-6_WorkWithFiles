@@ -23,7 +23,7 @@ namespace Task1
                 DelDir_30min(dir);
             }
             else
-                Console.WriteLine("NaN");
+                Console.WriteLine("Не верно указан путь!");
 
         }
         static void DelDir_30min(DirectoryInfo directoryInfo)
@@ -33,25 +33,25 @@ namespace Task1
                 DirectoryInfo[] dirs = directoryInfo.GetDirectories();
                 foreach (var dir in dirs)
                 {
+                    DelFile_30min(dir);
+
                     TimeSpan sub = DateTime.Now - dir.LastAccessTime;
                     if (sub > TimeSpan.FromMinutes(30))
                     {
-                        Console.WriteLine(dir.Name + " " + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдалено");
+                        Console.WriteLine(dir.Name + " " + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю");
                         dir.Delete(true);
                     }
                     
                     if(dir.Exists)
                         DelDir_30min(dir);
                 }
-
-                if (directoryInfo.Exists)
-                {
-                    DelFile_30min(directoryInfo);
-                }
             }
             catch (Exception ex)
             {
+                Console.BackgroundColor = ConsoleColor.DarkRed;
+                Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine("Ошибка: " + ex.Message);
+                Console.ResetColor();
             }                             
         }
         static void DelFile_30min(DirectoryInfo directoryInfo)
@@ -64,7 +64,7 @@ namespace Task1
                     TimeSpan sub = DateTime.Now - file.LastAccessTime;
                     if (sub > TimeSpan.FromMinutes(30))
                     {
-                        Console.WriteLine(file.FullName + "\t" + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдалёно");
+                        Console.WriteLine(file.FullName + "\t" + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю");
                         file.Delete();
                     }
                 }
@@ -72,7 +72,10 @@ namespace Task1
             }
             catch (Exception ex)
             {
+                Console.BackgroundColor = ConsoleColor.DarkRed;
+                Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine("Ошибка: " + ex.Message);
+                Console.ResetColor();
             }
         }
     }
