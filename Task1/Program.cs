@@ -19,47 +19,61 @@ namespace Task1
 
             if (dir.Exists)
             {
-                GetDirs(dir);
+                DelFile_30min(dir);
+                DelDir_30min(dir);
             }
             else
                 Console.WriteLine("NaN");
 
         }
-        static void GetDirs(DirectoryInfo directoryInfo)
+        static void DelDir_30min(DirectoryInfo directoryInfo)
         {
             try
             {
                 DirectoryInfo[] dirs = directoryInfo.GetDirectories();
                 foreach (var dir in dirs)
                 {
-                    TimeSpan sub = DateTime.Now - dir.CreationTime;
+                    TimeSpan sub = DateTime.Now - dir.LastAccessTime;
                     if (sub > TimeSpan.FromMinutes(30))
                     {
                         Console.WriteLine(dir.Name + " " + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдалено");
                         dir.Delete(true);
                     }
-
-                    GetDirs(dir);
+                    
+                    if(dir.Exists)
+                        DelDir_30min(dir);
                 }
 
                 if (directoryInfo.Exists)
                 {
-                    FileInfo[] files = directoryInfo.GetFiles();
-                    foreach (var file in files)
-                    {
-                        TimeSpan sub = DateTime.Now - file.LastAccessTime;
-                        if (sub > TimeSpan.FromMinutes(30))
-                        {
-                            Console.WriteLine(file.FullName + "\t" + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдалёно");
-                            file.Delete();
-                        }
-                    }
+                    DelFile_30min(directoryInfo);
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Ошибка: " + ex.Message);
             }                             
+        }
+        static void DelFile_30min(DirectoryInfo directoryInfo)
+        {
+            try
+            {
+                FileInfo[] files = directoryInfo.GetFiles();
+                foreach (var file in files)
+                {
+                    TimeSpan sub = DateTime.Now - file.LastAccessTime;
+                    if (sub > TimeSpan.FromMinutes(30))
+                    {
+                        Console.WriteLine(file.FullName + "\t" + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдалёно");
+                        file.Delete();
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Ошибка: " + ex.Message);
+            }
         }
     }
 }
