@@ -2,31 +2,38 @@
 {
     static void Main(string[] args)
     {
+        long size = 0;
+        Console.WriteLine("Укажите путь к папке:");
         string path = @"D:\!!!Test";
+        Console.WriteLine();
+
         DirectoryInfo directory = new DirectoryInfo(path);
 
         if(directory.Exists)
+        {
             Console.WriteLine(directory.FullName);
-            GetDirSize(directory);
+            size = GetDirSize(directory, ref size);
+            Console.WriteLine("Размер: " + size + " байт");
+        }
     }
-    static void GetDirSize(DirectoryInfo dir)
+    static long GetDirSize(DirectoryInfo dir, ref long filesize)
     {
-        GetFileSize(dir);
+        filesize = GetFileSize(dir, filesize);
 
         var directories = dir.GetDirectories();
-        foreach (var direct in directories)
-        {
-            Console.WriteLine(direct.FullName);
 
-            GetDirSize(direct);
-        }
+        foreach (var direct in directories)
+            GetDirSize(direct, ref filesize);
+
+        return filesize;
     }
-    static void GetFileSize(DirectoryInfo dir)
+    static long GetFileSize(DirectoryInfo dir, long filesize)
     {
         var files = dir.GetFiles();
+
         foreach (var file in files)
-        {
-            Console.WriteLine("\t" + file.Name + " " + file.Length + " байт");
-        }
+            filesize += file.Length;
+
+        return filesize;
     }
 }
