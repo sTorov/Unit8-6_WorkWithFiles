@@ -17,66 +17,50 @@ namespace Task1
 
             DirectoryInfo dir = new DirectoryInfo(path);
 
-            if (dir.Exists)
+            try
             {
                 DelFile_30min(dir);
                 DelDir_30min(dir);
             }
-            else
-                Console.WriteLine("Не верно указан путь!");
+            catch (Exception ex)
+            {
+                Console.BackgroundColor = ConsoleColor.DarkRed;
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine("Ошибка: " + ex.Message);
+                Console.ResetColor();
+            }
+
 
         }
         static void DelDir_30min(DirectoryInfo directoryInfo)
-        {
-            try
+        {            
+            DirectoryInfo[] dirs = directoryInfo.GetDirectories();
+            foreach (var dir in dirs)
             {
-                DirectoryInfo[] dirs = directoryInfo.GetDirectories();
-                foreach (var dir in dirs)
-                {
-                    DelFile_30min(dir);
+                DelFile_30min(dir);
 
-                    TimeSpan sub = DateTime.Now - dir.LastAccessTime;
-                    if (sub > TimeSpan.FromMinutes(30))
-                    {
-                        Console.WriteLine(dir.Name + " " + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю");
-                        dir.Delete(true);
-                    }
-                    
-                    if(dir.Exists)
-                        DelDir_30min(dir);
+                TimeSpan sub = DateTime.Now - dir.LastAccessTime;
+                if (sub > TimeSpan.FromMinutes(30))
+                {
+                    Console.WriteLine(dir.Name + " " + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю");
+                    dir.Delete(true);
                 }
+                    
+                DelDir_30min(dir);
             }
-            catch (Exception ex)
-            {
-                Console.BackgroundColor = ConsoleColor.DarkRed;
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine("Ошибка: " + ex.Message);
-                Console.ResetColor();
-            }                             
         }
         static void DelFile_30min(DirectoryInfo directoryInfo)
         {
-            try
+            FileInfo[] files = directoryInfo.GetFiles();
+            foreach (var file in files)
             {
-                FileInfo[] files = directoryInfo.GetFiles();
-                foreach (var file in files)
+                TimeSpan sub = DateTime.Now - file.LastAccessTime;
+                if (sub > TimeSpan.FromMinutes(30))
                 {
-                    TimeSpan sub = DateTime.Now - file.LastAccessTime;
-                    if (sub > TimeSpan.FromMinutes(30))
-                    {
-                        Console.WriteLine(file.FullName + "\t" + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю");
-                        file.Delete();
-                    }
+                    Console.WriteLine(file.FullName + "\t" + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю");
+                    file.Delete();
                 }
-
-            }
-            catch (Exception ex)
-            {
-                Console.BackgroundColor = ConsoleColor.DarkRed;
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine("Ошибка: " + ex.Message);
-                Console.ResetColor();
-            }
+            }            
         }
     }
 }
