@@ -30,7 +30,6 @@ namespace Task1
                 Console.ResetColor();
             }
 
-
         }
         static void DelDir_30min(DirectoryInfo directoryInfo)
         {            
@@ -39,14 +38,39 @@ namespace Task1
             {
                 DelFile_30min(dir);
 
+                if (dir.Exists)
+                    DelDir_30min(dir);
+
                 TimeSpan sub = DateTime.Now - dir.LastAccessTime;
                 if (sub > TimeSpan.FromMinutes(30))
                 {
-                    Console.WriteLine(dir.Name + " " + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю");
-                    dir.Delete(true);
-                }
-                    
-                DelDir_30min(dir);
+                    if(dir.GetFiles().Length == 0 && dir.GetDirectories().Length == 0)
+                    {
+                        Console.WriteLine(dir.Name + " " + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю пустую папку");
+                        dir.Delete();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"В папке {dir.Name} есть файлы и папки, использовавшиеся в прошедшие 30 минут\nУдалить папку? (y / n)");
+
+                        while (true)
+                        {
+                            var tap = Console.ReadKey(true);
+                            switch (tap.KeyChar)
+                            {
+                                case 'y':
+                                    dir.Delete(true);
+                                    break;
+                                case 'n':
+                                    break;                                
+                                default:
+                                    Console.WriteLine("Удалить папку? (y / n)");
+                                    continue;
+                            }
+                            break;
+                        }
+                    }
+                }                
             }
         }
         static void DelFile_30min(DirectoryInfo directoryInfo)
