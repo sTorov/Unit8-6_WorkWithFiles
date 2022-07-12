@@ -56,8 +56,7 @@
             }
             else
             {
-                Console.BackgroundColor = ConsoleColor.DarkRed;
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Такой директории не существует!");
                 Console.ResetColor();
             }

@@ -1,10 +1,25 @@
 ﻿namespace Task3
 {
+    /// <summary>
+    /// Режимы работы метода DelDir_30min
+    /// </summary>
     enum Mode
     {
+        /// <summary>
+        /// Ручной режим, предоставляет возможность удаления, если папка, которой не пользовались 30 мин, не пуста
+        /// </summary>
         Manual = 0,
+        /// <summary>
+        /// Удалять все папки, которые не использовались 30 минут, вместе с содержимым
+        /// </summary>
         Full,
+        /// <summary>
+        /// Удалять только файлы и пустые папки
+        /// </summary>
         Empty,
+        /// <summary>
+        /// Удалять только файлы
+        /// </summary>
         Files
     }
 
@@ -12,8 +27,6 @@
     {
         static void Main(string[] args)
         {
-            Console.OutputEncoding = System.Text.Encoding.UTF7;
-
             long size = 0, afterDelSize = 0;
             string path = string.Empty;
 
@@ -75,12 +88,17 @@
             }
             else
             {
-                Console.BackgroundColor = ConsoleColor.DarkRed;
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("Такой директории не существует!");
                 Console.ResetColor();
             }
         }
+        /// <summary>
+        /// Удаляет файлы,папки и их содержимое, которые не использовались 30 минут
+        /// </summary>
+        /// <param name="mode"></param>
+        /// <param name="dirs"></param>
+        /// <param name="files"></param>
         static void DelDir_30min(Mode mode, List<DirectoryInfo> dirs, List<FileInfo> files)
         {
             for (int i = files.Count - 1; i >= 0; i--)
@@ -177,6 +195,12 @@
                 }
             }
         }
+        /// <summary>
+        /// Считает размер файлов в указанной директории и её подпапках
+        /// </summary>
+        /// <param name="files"></param>
+        /// <param name="filesize"></param>
+        /// <returns></returns>
         static long GetDirSize(List<FileInfo> files, long filesize)
         {
             foreach (var file in files)
@@ -184,6 +208,13 @@
 
             return filesize;
         }
+        /// <summary>
+        /// Возвращает список всех файлов в указанной директории и её подпапках. Также возвращает список всех папок и подпапок в указанной директории
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="lsFileInfos"></param>
+        /// <param name="lsDirInfo"></param>
+        /// <returns></returns>
         static (List<FileInfo> lsFile, List<DirectoryInfo> lsDir) GetInfos(string path, List<FileInfo> lsFileInfos, List<DirectoryInfo> lsDirInfo)
         {
             var DirInfo = new DirectoryInfo(path);
@@ -210,7 +241,10 @@
 
             return (lsFileInfos, lsDirInfo);
         }
-
+        /// <summary>
+        /// Меняет цвет сообщения об ошибке
+        /// </summary>
+        /// <param name="e"></param>
         static void PrintException(Exception e)
         {
             Console.ForegroundColor = ConsoleColor.Red;
