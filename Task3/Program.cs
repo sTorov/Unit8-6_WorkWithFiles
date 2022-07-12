@@ -10,6 +10,9 @@
 
     class Program
     {
+        public static int DirCount = 0;
+        public static int FileCount = 0;
+
         static void Main(string[] args)
         {
             long size = 0;
@@ -22,7 +25,8 @@
 
             if (dir.Exists)
             {
-                Console.WriteLine("Размер папки: " + GetDirSize(dir, ref size) + " байт");
+                Console.WriteLine($"Размер папки: {GetDirSize(dir, ref size)} байт\tПапки: {DirCount}\tФайлы: {FileCount}");
+                Console.WriteLine($"");
                 Console.WriteLine();
 
                 Console.WriteLine("Выберете режим удаления\n1. Удалять только пустые директории\n2. Ручной выбор\n3. Удалять все папки, включая вложенные файлы, использованные в прошедшие 30 минут\n4. Удалить только файлы");
@@ -147,6 +151,7 @@
         static long GetDirSize(DirectoryInfo dir, ref long filesize)
         {
             var files = dir.GetFiles();
+            FileCount += dir.GetFiles().Length;
 
             foreach (var file in files)
             {
@@ -154,6 +159,7 @@
             }
 
             var directories = dir.GetDirectories();
+            DirCount += dir.GetDirectories().Length;
 
             foreach (var direct in directories)
             {
