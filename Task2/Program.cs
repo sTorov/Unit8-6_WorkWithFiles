@@ -3,10 +3,9 @@
     static void Main(string[] args)
     {
         long size = 0;
+
         Console.WriteLine("Укажите путь к папке:");
         string path = Console.ReadLine();
-        Console.WriteLine();
-
         DirectoryInfo directory = new DirectoryInfo(path);
 
         if(directory.Exists)
@@ -23,7 +22,7 @@
                 Console.ResetColor();
             }
 
-            Console.WriteLine("Размер: " + size + " байт");
+            Console.WriteLine("\nРазмер: " + size + " байт");
         }
         else
         {
@@ -35,7 +34,13 @@
     }
     static long GetDirSize(DirectoryInfo dir, ref long filesize)
     {
-        filesize = GetFileSize(dir, filesize);
+        var files = dir.GetFiles();
+
+        foreach (var file in files)
+        {
+            Console.WriteLine($"\t{file.Name}\t{file.Length}");
+            filesize += file.Length;
+        }
 
         var directories = dir.GetDirectories();
 
@@ -43,18 +48,6 @@
         {
             Console.WriteLine(direct.Name);
             GetDirSize(direct, ref filesize);
-        }
-
-        return filesize;
-    }
-    static long GetFileSize(DirectoryInfo dir, long filesize)
-    {
-        var files = dir.GetFiles();
-
-        foreach (var file in files)
-        {
-            Console.WriteLine($"\t{file.Name}\t{file.Length}");
-            filesize += file.Length;
         }
 
         return filesize;
