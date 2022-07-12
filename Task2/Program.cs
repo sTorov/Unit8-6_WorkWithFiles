@@ -8,48 +8,56 @@
         string path = Console.ReadLine();
         DirectoryInfo directory = new DirectoryInfo(path);
 
-        if(directory.Exists)
+        var Info = new List<FileInfo>();
+
+        if (directory.Exists)
         {
-            try
-            {
-                size = GetDirSize(directory, ref size);
-            }
-            catch (Exception ex)
-            {
-                Console.BackgroundColor = ConsoleColor.DarkRed;
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine("Ошибка: " + ex.Message);
-                Console.ResetColor();
-            }
+            Info = GetInfos(path, Info);
+            size = GetDirSize(Info, size);
 
             Console.WriteLine("\nРазмер: " + size + " байт");
         }
         else
         {
-            Console.BackgroundColor = ConsoleColor.DarkRed;
-            Console.ForegroundColor = ConsoleColor.White;
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("Такой директории не существует!");
             Console.ResetColor();
         }
     }
-    static long GetDirSize(DirectoryInfo dir, ref long filesize)
+    static List<FileInfo> GetInfos(string path, List<FileInfo> lsFileInfos)
     {
-        var files = dir.GetFiles();
+        var DirInfo = new DirectoryInfo(path);
 
+        try
+        {
+            var Files = DirInfo.GetFiles();
+
+            foreach (var File in Files)
+                lsFileInfos.Add(File);
+
+            var Dirs = DirInfo.GetDirectories();
+
+            foreach (var Dir in Dirs)
+                GetInfos(Dir.FullName, lsFileInfos);
+        }
+        catch (Exception e)
+        {
+            PrintException(e);
+        }
+
+        return lsFileInfos;
+    }
+    static long GetDirSize(List<FileInfo> files, long filesize)
+    {
         foreach (var file in files)
-        {
-            Console.WriteLine($"\t{file.Name}\t{file.Length}");
             filesize += file.Length;
-        }
-
-        var directories = dir.GetDirectories();
-
-        foreach (var direct in directories)
-        {
-            Console.WriteLine(direct.Name);
-            GetDirSize(direct, ref filesize);
-        }
 
         return filesize;
+    }
+    static void PrintException(Exception e)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("Ошибка: " + e.Message);
+        Console.ResetColor();
     }
 }
