@@ -10,13 +10,10 @@
 
     class Program
     {
-        public static int DirCount;
-        public static int FileCount;
-
         static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF7;
-            
+
             long size = 0, afterDelSize = 0;
             string path = string.Empty;
 
@@ -24,23 +21,26 @@
             path = Console.ReadLine();
             DirectoryInfo info = new DirectoryInfo(path);
 
-            var Infos = (files : new List<FileInfo>(), dirs : new List<DirectoryInfo>());
+            var Infos = (files: new List<FileInfo>(), dirs: new List<DirectoryInfo>());
 
 
             if (info.Exists)
             {
                 Infos = GetInfos(path, Infos.files, Infos.dirs);
+                int dirs = Infos.dirs.Count;
+                int files = Infos.files.Count;
 
                 size = GetDirSize(Infos.files, size);
-                Console.WriteLine("" + size + " байт");
+                Console.WriteLine("Исходный размер папки: " + size + " байт");
+                Console.WriteLine($"Папки: {dirs}\tФайлы: {files}");
 
                 Console.WriteLine("----------------------------------------------------------------------");
 
                 Console.WriteLine("Выберете режим удаления:\n\n1. Удалять только пустые директории\n2. Ручной выбор\n3. Удалять все папки, включая вложенные файлы, использованные в прошедшие 30 минут\n4. Удалить только файлы");
-                
+
                 while (true)
                 {
-                    Console.WriteLine("\nНажмите '1' '2' '3' '4' соответственно");
+                    Console.WriteLine("\nНажмите '1' '2' '3' '4' соответственно\n");
                     var click = Console.ReadKey(true).KeyChar;
 
                     switch (click)
@@ -60,9 +60,15 @@
                         default:
                             continue;
                     }
-                    //Console.WriteLine("\n----------------------------------------------------------------------");
-                    //Console.WriteLine($"Текущий размер папки: {GetDirSize(dir, ref afterDelSize)} байт");
-                    //Console.WriteLine($"Освобождено: {size - afterDelSize} байт\nУдалено папок: {dirBeforeDel - DirCount}\tУдалено файлов: {fileBeforeDel - FileCount}");
+                    Console.WriteLine("\n----------------------------------------------------------------------");
+
+                    Infos.files.Clear();
+                    Infos.dirs.Clear();
+                    Infos = GetInfos(path, Infos.files, Infos.dirs);
+                    afterDelSize = GetDirSize(Infos.files, afterDelSize);
+
+                    Console.WriteLine($"Текущий размер папки: {afterDelSize} байт");
+                    Console.WriteLine($"Освобождено: {size - afterDelSize} байт\nУдалено папок: {dirs - Infos.dirs.Count}\tУдалено файлов: {files - Infos.files.Count}");
 
                     break;
                 }
@@ -77,42 +83,38 @@
         }
         static void DelDir_30min(Mode mode, List<DirectoryInfo> dirs, List<FileInfo> files)
         {
-            foreach (var file in files)
+            for (int i = files.Count - 1; i >= 0; i--)
             {
                 try
                 {
-                    TimeSpan sub = DateTime.Now - file.LastAccessTime;
-
-                    if (sub > TimeSpan.FromMinutes(30))
+                    if ((DateTime.Now - files[i].LastAccessTime) > TimeSpan.FromMinutes(30))
                     {
-                        Console.WriteLine(file.FullName + $"\t\tНе использовался более 30 минут\t\tУдаляю файл");
-                        file.Delete();
+                        Console.WriteLine(files[i].FullName + $"\t\tНе использовался более 30 минут\t\tУдаляю файл");
+                        files[i].Delete();
                     }
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    PrintException(e);
                 }
             }
 
-            foreach (var dir in dirs)
+            for (int i = dirs.Count - 1; i >= 0; i--)
             {
-                try
+                if (mode == Mode.Manual)
                 {
-                    TimeSpan sub = DateTime.Now - dir.LastAccessTime;
-
-                    if (mode == Mode.Manual)
+                    try
                     {
-                        if (sub > TimeSpan.FromMinutes(30))
+                        if ((DateTime.Now - dirs[i].LastAccessTime) > TimeSpan.FromMinutes(30))
                         {
-                            if (dir.GetFiles().Length == 0 && dir.GetDirectories().Length == 0)
+                            if (dirs[i].GetFiles().Length == 0 && dirs[i].GetDirectories().Length == 0)
                             {
-                                Console.WriteLine(dir.FullName + $"\t\tНе использовалась более 30 минут\tУдаляю пустую папку");
-                                dir.Delete();
+                                Console.WriteLine(dirs[i].FullName + $"\t\tНе использовалась более 30 минут\tУдаляю пустую папку");
+                                dirs[i].Delete();
                             }
                             else
                             {
-                                Console.WriteLine($"В папке {dir.FullName} есть файлы и папки, использовавшиеся в прошлые 30 минут\nУдалить папку? (y / n)");
+                                Console.WriteLine($"В папке {dirs[i].FullName} есть файлы и папки, использовавшиеся в прошлые 30 минут\nУдалить папку? (y / n)");
 
                                 while (true)
                                 {
@@ -120,8 +122,8 @@
                                     switch (tap.KeyChar)
                                     {
                                         case 'y':
-                                            dir.Delete(true);
-                                            Console.WriteLine($"Удаляю {dir.FullName}");
+                                            dirs[i].Delete(true);
+                                            Console.WriteLine($"Удаляю {dirs[i].FullName}");
                                             break;
                                         case 'n':
                                             break;
@@ -130,52 +132,64 @@
                                             continue;
                                     }
                                     break;
+
                                 }
                             }
                         }
-
                     }
-                    if (mode == Mode.Full)
+                    catch (Exception e)
                     {
-                        if (sub > TimeSpan.FromMinutes(30))
+                        PrintException(e);
+                    }
+                }
+                if (mode == Mode.Full)
+                {
+                    try
+                    {
+                        if ((DateTime.Now - dirs[i].LastAccessTime) > TimeSpan.FromMinutes(30))
                         {
-                            Console.WriteLine(dir.FullName + $"\t\tНе использовалась более 30 минут\tУдаляю папку");
-                            dir.Delete(true);
+                            Console.WriteLine(dirs[i].FullName + $"\t\tНе использовалась более 30 минут\tУдаляю папку");
+                            dirs[i].Delete(true);
                         }
                     }
-                    if (mode == Mode.Empty)
+                    catch (Exception e)
                     {
-                        if (sub > TimeSpan.FromMinutes(30))
+                        PrintException(e);
+                    }
+                }
+                if (mode == Mode.Empty)
+                {
+                    try
+                    {
+                        if ((DateTime.Now - dirs[i].LastAccessTime) > TimeSpan.FromMinutes(30))
                         {
-                            if (dir.GetFiles().Length == 0 && dir.GetDirectories().Length == 0)
+                            if (dirs[i].GetFiles().Length == 0 && dirs[i].GetDirectories().Length == 0)
                             {
-                                Console.WriteLine(dir.FullName + $"\t\tНе использовалась более 30 минут\tУдаляю пустую папку");
-                                dir.Delete();
+                                Console.WriteLine(dirs[i].FullName + $"\t\tНе использовалась более 30 минут\tУдаляю пустую папку");
+                                dirs[i].Delete();
                             }
                         }
                     }
+                    catch (Exception e)
+                    {
+                        PrintException(e);
+                    }
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }                
             }
         }
         static long GetDirSize(List<FileInfo> files, long filesize)
         {
             foreach (var file in files)
-            {
                 filesize += file.Length;
-                Console.WriteLine(file.FullName + "\t" + file.Length + " байт");
-            }
-            
+
             return filesize;
         }
         static (List<FileInfo> lsFile, List<DirectoryInfo> lsDir) GetInfos(string path, List<FileInfo> lsFileInfos, List<DirectoryInfo> lsDirInfo)
         {
+            var DirInfo = new DirectoryInfo(path);
+
             try
             {
-                var DirInfo = new DirectoryInfo(path);
                 var Files = DirInfo.GetFiles();
 
                 foreach (var File in Files)
@@ -191,10 +205,18 @@
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                PrintException(e);
             }
 
             return (lsFileInfos, lsDirInfo);
+        }
+
+        static void PrintException(Exception e)
+        {
+            Console.BackgroundColor = ConsoleColor.DarkRed;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("Ошибка: " + e.Message);
+            Console.ResetColor();
         }
     }
 }
