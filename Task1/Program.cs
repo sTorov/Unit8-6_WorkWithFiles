@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Task1
+﻿namespace Task1
 {
+    enum Mode
+    {
+        Manual = 0,
+        Full,
+        Empty,
+        Files
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -20,7 +22,7 @@ namespace Task1
 
             if(dir.Exists)
             {
-                Console.WriteLine("Выберете режим удаления\n1. Не удалять не пустые директории\n2. Ручной выбор\n3. Удалять все автоматически\n4. Удалить только файлы");
+                Console.WriteLine("Выберете режим удаления\n1. Удалять только пустые директории\n2. Ручной выбор\n3. Удалять все папки, включая вложенные файлы, использованные в прошедшие 30 минут\n4. Удалить только файлы");
                 try
                 {
                     while (true)
@@ -31,20 +33,16 @@ namespace Task1
                         switch (click)
                         {
                             case '1':
-                                DelFile_30min(dir);
-                                DelDir_30min_NoDel(dir);
+                                DelDir_30min(dir, Mode.Empty);
                                 break;
                             case '2':
-                                DelFile_30min(dir);
-                                DelDir_30min_Manual(dir);
+                                DelDir_30min(dir, Mode.Manual);
                                 break;
                             case '3':
-                                DelFile_30min(dir);
-                                DelDir_30min_Auto(dir);
+                                DelDir_30min(dir, Mode.Full);
                                 break;
                             case '4':
-                                DelFile_30min(dir);
-                                DelDir_30min_FileIn(dir);
+                                DelDir_30min(dir, Mode.Files);
                                 break;
                             default:
                                 continue;
@@ -68,108 +66,80 @@ namespace Task1
                 Console.ResetColor();
             }
         }
-        static void DelDir_30min_Manual(DirectoryInfo directoryInfo)
-        {            
-            DirectoryInfo[] dirs = directoryInfo.GetDirectories();
-            foreach (var dir in dirs)
-            {
-                DelFile_30min(dir);
-
-                DelDir_30min_Manual(dir);
-
-                TimeSpan sub = DateTime.Now - dir.LastAccessTime;
-                if (sub > TimeSpan.FromMinutes(30))
-                {
-                    if(dir.GetFiles().Length == 0 && dir.GetDirectories().Length == 0)
-                    {
-                        Console.WriteLine(dir.Name + " " + $"Не использовалась {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю пустую папку");
-                        dir.Delete();
-                    }
-                    else
-                    {
-                        Console.WriteLine($"В папке {dir.Name} есть файлы и папки, использовавшиеся в прошедшие 30 минут\nУдалить папку? (y / n)");
-
-                        while (true)
-                        {
-                            var tap = Console.ReadKey(true);
-                            switch (tap.KeyChar)
-                            {
-                                case 'y':
-                                    dir.Delete(true);
-                                    break;
-                                case 'n':
-                                    break;                                
-                                default:
-                                    Console.WriteLine("Удалить папку? (y / n)");
-                                    continue;
-                            }
-                            break;
-                        }
-                    }
-                }                
-            }
-        }
-        static void DelDir_30min_Auto(DirectoryInfo directoryInfo)
-        {
-            DirectoryInfo[] dirs = directoryInfo.GetDirectories();
-            foreach (var dir in dirs)
-            {
-                DelFile_30min(dir);
-
-                DelDir_30min_Auto(dir);
-
-                TimeSpan sub = DateTime.Now - dir.LastAccessTime;
-                if (sub > TimeSpan.FromMinutes(30))
-                {
-                    Console.WriteLine(dir.Name + " " + $"Не использовалась {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю папку");
-                    dir.Delete(true);
-                }
-            }
-        }
-        static void DelDir_30min_NoDel(DirectoryInfo directoryInfo)
-        {
-            DirectoryInfo[] dirs = directoryInfo.GetDirectories();
-            foreach (var dir in dirs)
-            {
-                DelFile_30min(dir);
-
-                if (dir.Exists)
-                    DelDir_30min_NoDel(dir);
-
-                TimeSpan sub = DateTime.Now - dir.LastAccessTime;
-                if (sub > TimeSpan.FromMinutes(30))
-                {
-                    if (dir.GetFiles().Length == 0 && dir.GetDirectories().Length == 0)
-                    {
-                        Console.WriteLine(dir.Name + " " + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю пустую папку");
-                        dir.Delete();
-                    }
-                }
-            }
-        }
-        static void DelDir_30min_FileIn(DirectoryInfo directoryInfo)
-        {
-            DirectoryInfo[] dirs = directoryInfo.GetDirectories();
-            foreach (var dir in dirs)
-            {
-                DelFile_30min(dir);
-
-                DelDir_30min_FileIn(dir);
-            }
-        }
-
-        static void DelFile_30min(DirectoryInfo directoryInfo)
+        static void DelDir_30min(DirectoryInfo directoryInfo, Mode mode)
         {
             FileInfo[] files = directoryInfo.GetFiles();
             foreach (var file in files)
             {
                 TimeSpan sub = DateTime.Now - file.LastAccessTime;
+
                 if (sub > TimeSpan.FromMinutes(30))
                 {
                     Console.WriteLine(file.FullName + "\t" + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю файл");
                     file.Delete();
                 }
-            }            
+            }
+
+            DirectoryInfo[] dirs = directoryInfo.GetDirectories();
+            foreach (var dir in dirs)
+            {
+                DelDir_30min(dir, mode);
+                
+                TimeSpan sub = DateTime.Now - dir.LastAccessTime;
+                
+                if(mode == Mode.Manual)
+                {
+                    if (sub > TimeSpan.FromMinutes(30))
+                    {
+                        if (dir.GetFiles().Length == 0 && dir.GetDirectories().Length == 0)
+                        {
+                            Console.WriteLine(dir.Name + " " + $"Не использовалась {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю пустую папку");
+                            dir.Delete();
+                        }
+                        else
+                        {
+                            Console.WriteLine($"В папке {dir.FullName} есть файлы и папки, использовавшиеся в прошлые 30 минут\nУдалить папку? (y / n)");
+
+                            while (true)
+                            {
+                                var tap = Console.ReadKey(true);
+                                switch (tap.KeyChar)
+                                {
+                                    case 'y':
+                                        dir.Delete(true);
+                                        break;
+                                    case 'n':
+                                        break;
+                                    default:
+                                        Console.WriteLine("Удалить папку? (y / n)");
+                                        continue;
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                }
+                if(mode == Mode.Full)
+                {
+                    if (sub > TimeSpan.FromMinutes(30))
+                    {
+                        Console.WriteLine(dir.Name + " " + $"Не использовалась {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю папку");
+                        dir.Delete(true);
+                    }
+                }
+                if(mode == Mode.Empty)
+                {
+                    if (sub > TimeSpan.FromMinutes(30))
+                    {
+                        if (dir.GetFiles().Length == 0 && dir.GetDirectories().Length == 0)
+                        {
+                            Console.WriteLine(dir.Name + " " + $"Не использовался {sub.Hours}:{sub.Minutes}:{sub.Seconds}" + "\tУдаляю пустую папку");
+                            dir.Delete();
+                        }
+                    }
+                }
+            }
         }
     }
 }
