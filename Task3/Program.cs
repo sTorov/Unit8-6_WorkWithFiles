@@ -10,12 +10,14 @@
 
     class Program
     {
-        public static int DirCount = 0;
-        public static int FileCount = 0;
+        public static int DirCount;
+        public static int FileCount;
 
         static void Main(string[] args)
         {
-            long size = 0;
+            Console.OutputEncoding = System.Text.Encoding.UTF7;
+            
+            long size = 0, afterDelSize = 0;
             string path = string.Empty;
 
             Console.WriteLine("Укажите путь к папке:");
@@ -25,11 +27,13 @@
 
             if (dir.Exists)
             {
-                Console.WriteLine($"Размер папки: {GetDirSize(dir, ref size)} байт\tПапки: {DirCount}\tФайлы: {FileCount}");
-                Console.WriteLine($"");
-                Console.WriteLine();
+                Console.WriteLine($"Исходный размер папки: {GetDirSize(dir, ref size)} байт\nПапки: {DirCount}\tФайлы: {FileCount}");
+                
+                int dirBeforeDel = DirCount;
+                int fileBeforeDel = FileCount;
+                Console.WriteLine("----------------------------------------------------------------------");
 
-                Console.WriteLine("Выберете режим удаления\n1. Удалять только пустые директории\n2. Ручной выбор\n3. Удалять все папки, включая вложенные файлы, использованные в прошедшие 30 минут\n4. Удалить только файлы");
+                Console.WriteLine("Выберете режим удаления:\n\n1. Удалять только пустые директории\n2. Ручной выбор\n3. Удалять все папки, включая вложенные файлы, использованные в прошедшие 30 минут\n4. Удалить только файлы");
                 try
                 {
                     while (true)
@@ -54,6 +58,14 @@
                             default:
                                 continue;
                         }
+
+                        DirCount = 0;
+                        FileCount = 0;
+
+                        Console.WriteLine("\n----------------------------------------------------------------------");
+                        Console.WriteLine($"Текущий размер папки: {GetDirSize(dir, ref afterDelSize)} байт");
+                        Console.WriteLine($"Освобождено: {size - afterDelSize} байт\nУдалено папок: {dirBeforeDel - DirCount}\tУдалено файлов: {fileBeforeDel - FileCount}");
+
                         break;
                     }
                 }
@@ -154,17 +166,13 @@
             FileCount += dir.GetFiles().Length;
 
             foreach (var file in files)
-            {
                 filesize += file.Length;
-            }
 
             var directories = dir.GetDirectories();
             DirCount += dir.GetDirectories().Length;
 
             foreach (var direct in directories)
-            {
                 GetDirSize(direct, ref filesize);
-            }
 
             return filesize;
         }
