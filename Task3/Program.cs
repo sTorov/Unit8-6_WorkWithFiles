@@ -213,8 +213,7 @@
 
         static void PrintException(Exception e)
         {
-            Console.BackgroundColor = ConsoleColor.DarkRed;
-            Console.ForegroundColor = ConsoleColor.White;
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine("Ошибка: " + e.Message);
             Console.ResetColor();
         }
