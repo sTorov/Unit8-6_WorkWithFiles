@@ -36,7 +36,6 @@
 
             var Infos = (files: new List<FileInfo>(), dirs: new List<DirectoryInfo>());
 
-
             if (info.Exists)
             {
                 Infos = GetInfos(path, Infos.files, Infos.dirs);
