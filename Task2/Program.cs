@@ -24,6 +24,12 @@
             Console.ResetColor();
         }
     }
+    /// <summary>
+    /// Возвращает список всех файлов в указанной директории и её подпапках
+    /// </summary>
+    /// <param name="path"></param>
+    /// <param name="lsFileInfos"></param>
+    /// <returns></returns>
     static List<FileInfo> GetInfos(string path, List<FileInfo> lsFileInfos)
     {
         var DirInfo = new DirectoryInfo(path);
@@ -47,6 +53,12 @@
 
         return lsFileInfos;
     }
+    /// <summary>
+    /// Считает размер файлов в указанной директории и её подпапках
+    /// </summary>
+    /// <param name="files"></param>
+    /// <param name="filesize"></param>
+    /// <returns></returns>
     static long GetDirSize(List<FileInfo> files, long filesize)
     {
         foreach (var file in files)
@@ -54,6 +66,10 @@
 
         return filesize;
     }
+    /// <summary>
+    /// Меняет цвет сообщения об ошибке
+    /// </summary>
+    /// <param name="e"></param>
     static void PrintException(Exception e)
     {
         Console.ForegroundColor = ConsoleColor.Red;
