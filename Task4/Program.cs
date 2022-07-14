@@ -16,9 +16,15 @@ namespace FinalTask
             using (var fs = new FileStream(dat, FileMode.OpenOrCreate))
             {
                 var students = (Student[])bf.Deserialize(fs);
-                foreach(var student in students)
+                foreach (var student in students)
                 {
-                    Console.WriteLine($"{student.Name}\t\t{student.Group}\t{student.DateOfBirth}");
+                    if (!File.Exists(Path.Combine(path, student.Group + ".txt")))
+                        File.Create(Path.Combine(path, student.Group + ".txt"));
+
+                    using (var sw = File.AppendText(Path.Combine(path, student.Group + ".txt")))
+                    {
+                        sw.WriteLine($"{student.Name} {student.DateOfBirth}");
+                    }
                 }
             }
         }
